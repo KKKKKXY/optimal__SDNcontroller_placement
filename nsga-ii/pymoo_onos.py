@@ -10,39 +10,31 @@ from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
 
 # Node ID should start from 0
-graph = {
-    0: {2: 54},
-    1: {2: 68},
-    2: {0: 54, 1: 68}
-}
-
 # graph = {
-#     1: {3: 82.99458278043693, 4: 38.0311153294585 },
-#     2: {6: 71.39569502299298, 7: 164.82129372183246, 8: 125.12889341007268},
-#     3: {1: 82.99458278043693, 10: 44.40532335578192, 15: 60.085872515938526},
-#     4: {1: 38.0311153294585},
-#     5: {18: 40.94078297191167, 6: 73.00240078651599, 7: 39.63429170218247, 8:82.63755970844781},
-#     6: {2: 71.39569502299298, 5: 73.00240078651599},
-#     7: {2: 164.82129372183246, 5: 39.63429170218247, 9: 82.95757267021366},
-#     8: {2: 125.12889341007268, 5: 82.63755970844781},
-#     9: {7: 82.95757267021366, 17: 128.55298324149916, 18: 69.60040685366947, 16: 80.63749756519596},
-#     10: {3: 44.40532335578192, 18: 53.8990046198166, 14: 66.0212258943215, 16: 165.44426544490818},
-#     11: {12: 124.27954969591543, 16: 93.02721253398369},
-#     12: {11: 124.27954969591543, 18: 97.37414158154495, 13: 56.22293094713925, 16: 38.90792597867574},
-#     13: {12: 56.22293094713925, 14: 34.37094579691975, 15: 50.643929335722085, 16: 94.00634375520872},
-#     14: {10: 66.02122589432157, 13: 34.37094579691975, 15: 16.37608707101773},
-#     15: {3: 60.085872515938526, 13: 50.643929335722085, 14: 16.376087071017736, 18: 5.745325757683184, 16: 134.60231940716625},
-#     16: {9: 80.63749756519596, 10: 165.44426544490818, 11: 93.02721253398369, 12: 38.90792597867574, 13: 94.00634375520872, 15: 134.60231940716625, 17: 63.939794628835195, 18: 135.54764213855776},
-#     17: {9: 128.55298324149916, 16: 63.939794628835195},
-#     18: {5: 40.94078297191167, 9: 69.60040685366947, 10: 53.8990046198166, 12: 97.3741415815449, 15: 5.745325757683184, 16: 135.54764213855776},
+#     0: {2: 54},
+#     1: {2: 68},
+#     2: {0: 54, 1: 68}
 # }
 
-config = {
-    "half_pop_size" : 20,
-    "problem_dim" : 1,
-    "gene_min_val" : 2,
-    "gene_max_val" : 18,
-    "mutation_power_ratio" : 1.05,
+graph = {
+    0: {2: 82.99458278043693, 3: 38.0311153294585 },
+    1: {5: 71.39569502299298, 6: 164.82129372183246, 7: 125.12889341007268},
+    2: {0: 82.99458278043693, 9: 44.40532335578192, 14: 60.085872515938526},
+    3: {0: 38.0311153294585},
+    4: {17: 40.94078297191167, 5: 73.00240078651599, 6: 39.63429170218247, 7:82.63755970844781},
+    5: {1: 71.39569502299298, 4: 73.00240078651599},
+    6: {1: 164.82129372183246, 4: 39.63429170218247, 8: 82.95757267021366},
+    7: {1: 125.12889341007268, 4: 82.63755970844781},
+    8: {6: 82.95757267021366, 16: 128.55298324149916, 17: 69.60040685366947, 15: 80.63749756519596},
+    9: {2: 44.40532335578192, 17: 53.8990046198166, 13: 66.0212258943215, 15: 165.44426544490818},
+    10: {11: 124.27954969591543, 15: 93.02721253398369},
+    11: {10: 124.27954969591543, 17: 97.37414158154495, 12: 56.22293094713925, 15: 38.90792597867574},
+    12: {11: 56.22293094713925, 13: 34.37094579691975, 14: 50.643929335722085, 15: 94.00634375520872},
+    13: {9: 66.02122589432157, 12: 34.37094579691975, 14: 16.37608707101773},
+    14: {2: 60.085872515938526, 12: 50.643929335722085, 13: 16.376087071017736, 17: 5.745325757683184, 15: 134.60231940716625},
+    15: {8: 80.63749756519596, 9: 165.44426544490818, 10: 93.02721253398369, 11: 38.90792597867574, 12: 94.00634375520872, 14: 134.60231940716625, 16: 63.939794628835195, 17: 135.54764213855776},
+    16: {8: 128.55298324149916, 15: 63.939794628835195},
+    17: {4: 40.94078297191167, 8: 69.60040685366947, 9: 53.8990046198166, 11: 97.3741415815449, 14: 5.745325757683184, 15: 135.54764213855776},
 }
 
 class ONOSControllerPlacement(ElementwiseProblem):
@@ -94,13 +86,6 @@ def calculate_FST(num_nodes, controller_nodes, atomix_nodes, distance_matrix, sh
     if(num_controller == 0 or num_atomix ==0):
         return math.inf
 
-    # calculate avarage delay between controllers and atomix nodes
-    controller_atomix_delays = []
-    for c in controller_list:
-        for a in atomix_list:
-            controller_atomix_delays.append(distance_matrix[c][a])
-    average_controller_atomix_delay = np.mean(controller_atomix_delays)
-
     # find the nearest controller for each switch
     controller_of = []
     for s in range(num_nodes):
@@ -112,14 +97,52 @@ def calculate_FST(num_nodes, controller_nodes, atomix_nodes, distance_matrix, sh
                 nearest_controller = c
         controller_of.append(nearest_controller)
 
+    # calculate average delay to atomix nodes from each controller
+    average_atomix_delay_from = {}
+    for c in controller_list:
+        delay = []
+        for a in atomix_list:
+            delay.append(distance_matrix[c][a])
+        average_atomix_delay_from[c] = np.mean(delay)
+
+    # find the nearest atomix for each atomix and calculate average delay
+    atomix_atomix_delays = []
+    for a1 in atomix_list:
+        delay = math.inf
+        for a2 in atomix_list:
+            if(a1 == a2):
+                continue
+            if distance_matrix[a1][a2] < delay:
+                delay = distance_matrix[a1][a2]
+        atomix_atomix_delays.append(delay)
+    average_atomix_atomix_delay = np.mean(atomix_atomix_delays)
+
     FTSs = []
     for source in range(num_nodes):
         for distination in range(num_nodes):
-            # TODO: need to fix based on the latest model design
-            delay = distance_matrix[source][distination] * 2
-            delay += distance_matrix[source][controller_of[source]] * 4
-            delay += distance_matrix[distination][controller_of[distination]] * 4
-            delay +=  average_controller_atomix_delay * 3
+            delay = 0
+            is_controlled_by_single_controller = True
+            counted_controllers = []
+            for s in shortest_paths[source][distination]:
+                # switch-controller delay
+                delay += distance_matrix[s][controller_of[s]] * 4
+                # controller-atomix delay
+                if(s == source):
+                    delay += average_atomix_delay_from[controller_of[s]] * 2
+                elif(s != distination):
+                    if(controller_of[s] != controller_of[source]):
+                        is_controlled_by_single_controller = False
+                        if(not controller_of[s] in counted_controllers):
+                            counted_controllers.append(controller_of[s])
+                            delay += average_atomix_delay_from[controller_of[s]]
+                else:
+                    if(controller_of[s] == controller_of[source]):
+                        if(not is_controlled_by_single_controller):
+                            delay += average_atomix_delay_from[controller_of[s]]
+                    else:
+                        delay += average_atomix_delay_from[controller_of[s]] * 2
+            # atomix-atomix delay
+            delay +=  average_atomix_atomix_delay * 2
         FTSs.append(delay)
 
     return np.mean(FTSs)
@@ -144,6 +167,7 @@ def main():
                       sampling=BinaryRandomSampling(),
                       crossover=TwoPointCrossover(),
                       mutation=BitflipMutation(),
+                      seed=1,
                       eliminate_duplicates=True)
     res = minimize(problem,
                algorithm,
