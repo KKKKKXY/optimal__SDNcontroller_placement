@@ -212,7 +212,7 @@ for e in edge_set:
 
 
 for k in sorted(graph.keys()):
-    outputstring_to_be_exported += f'    {k}: {graph[k]}\n'
+    outputstring_to_be_exported += f'    {k}: {graph[k]},\n'
 
 outputstring_to_be_exported+='}\n'
 
