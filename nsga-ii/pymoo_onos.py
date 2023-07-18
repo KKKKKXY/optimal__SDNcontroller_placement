@@ -38,11 +38,12 @@ graph = {
 }
 
 class ONOSControllerPlacement(ElementwiseProblem):
-    def __init__(self, num_nodes, distance_matrix, shortest_paths):
+    def __init__(self, num_nodes, distance_matrix, shortest_paths, **kwargs):
         super().__init__(n_var=2*num_nodes, 
                          n_obj=3, 
                          n_constr=2, 
-                         xl=0, xu=1)
+                         xl=0, xu=1, 
+                         **kwargs)
         self.num_nodes = num_nodes
         self.distance_matrix = distance_matrix
         self.shortest_paths = shortest_paths
@@ -116,16 +117,18 @@ def calculate_FST(num_nodes, controller_nodes, atomix_nodes, distance_matrix, sh
                 delay = distance_matrix[a1][a2]
         atomix_atomix_delays.append(delay)
     average_atomix_atomix_delay = np.mean(atomix_atomix_delays)
-
     FTSs = []
     for source in range(num_nodes):
         for distination in range(num_nodes):
+            if(source == distination):
+                continue
             delay = 0
             is_controlled_by_single_controller = True
             counted_controllers = []
             for s in shortest_paths[source][distination]:
                 # switch-controller delay
                 delay += distance_matrix[s][controller_of[s]] * 4
+
                 # controller-atomix delay
                 if(s == source):
                     delay += average_atomix_delay_from[controller_of[s]] * 2
@@ -141,9 +144,10 @@ def calculate_FST(num_nodes, controller_nodes, atomix_nodes, distance_matrix, sh
                             delay += average_atomix_delay_from[controller_of[s]]
                     else:
                         delay += average_atomix_delay_from[controller_of[s]] * 2
+            
             # atomix-atomix delay
             delay +=  average_atomix_atomix_delay * 2
-        FTSs.append(delay)
+            FTSs.append(delay)
 
     return np.mean(FTSs)
 
@@ -157,10 +161,9 @@ def calc_distance_matrix(graph):
 
     return distance_matrix, shortest_paths
 
-def main():
+def optimize():
     num_nodes = len(graph)
     distance_matrix, shortest_paths = calc_distance_matrix(graph)
-
 
     problem = ONOSControllerPlacement(num_nodes, distance_matrix, shortest_paths)
     algorithm = NSGA2(pop_size=100,
@@ -174,6 +177,13 @@ def main():
                ('n_gen', 100),
                save_history=True,
                verbose=True)
+    
+    return res
+
+def main():
+    res = optimize()
+    F = res.F
+    print(F[np.argsort(F[:, 0])])
 
 if __name__ == "__main__":
     main()
