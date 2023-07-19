@@ -1,41 +1,18 @@
 #!/usr/bin/env python
+import os
 import numpy as np
 import networkx as nx
 import math
+import multiprocessing
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.operators.crossover.pntx import TwoPointCrossover
 from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
+from pymoo.core.problem import StarmapParallelization
 
-# Node ID should start from 0
-# graph = {
-#     0: {2: 54},
-#     1: {2: 68},
-#     2: {0: 54, 1: 68}
-# }
-
-graph = {
-    0: {2: 82.99458278043693, 3: 38.0311153294585 },
-    1: {5: 71.39569502299298, 6: 164.82129372183246, 7: 125.12889341007268},
-    2: {0: 82.99458278043693, 9: 44.40532335578192, 14: 60.085872515938526},
-    3: {0: 38.0311153294585},
-    4: {17: 40.94078297191167, 5: 73.00240078651599, 6: 39.63429170218247, 7:82.63755970844781},
-    5: {1: 71.39569502299298, 4: 73.00240078651599},
-    6: {1: 164.82129372183246, 4: 39.63429170218247, 8: 82.95757267021366},
-    7: {1: 125.12889341007268, 4: 82.63755970844781},
-    8: {6: 82.95757267021366, 16: 128.55298324149916, 17: 69.60040685366947, 15: 80.63749756519596},
-    9: {2: 44.40532335578192, 17: 53.8990046198166, 13: 66.0212258943215, 15: 165.44426544490818},
-    10: {11: 124.27954969591543, 15: 93.02721253398369},
-    11: {10: 124.27954969591543, 17: 97.37414158154495, 12: 56.22293094713925, 15: 38.90792597867574},
-    12: {11: 56.22293094713925, 13: 34.37094579691975, 14: 50.643929335722085, 15: 94.00634375520872},
-    13: {9: 66.02122589432157, 12: 34.37094579691975, 14: 16.37608707101773},
-    14: {2: 60.085872515938526, 12: 50.643929335722085, 13: 16.376087071017736, 17: 5.745325757683184, 15: 134.60231940716625},
-    15: {8: 80.63749756519596, 9: 165.44426544490818, 10: 93.02721253398369, 11: 38.90792597867574, 12: 94.00634375520872, 14: 134.60231940716625, 16: 63.939794628835195, 17: 135.54764213855776},
-    16: {8: 128.55298324149916, 15: 63.939794628835195},
-    17: {4: 40.94078297191167, 8: 69.60040685366947, 9: 53.8990046198166, 11: 97.3741415815449, 14: 5.745325757683184, 15: 135.54764213855776},
-}
+import topology_graph
 
 class ONOSControllerPlacement(ElementwiseProblem):
     def __init__(self, num_nodes, distance_matrix, shortest_paths, **kwargs):
@@ -161,12 +138,18 @@ def calc_distance_matrix(graph):
 
     return distance_matrix, shortest_paths
 
-def optimize():
+def optimize(graph):
     num_nodes = len(graph)
+    pop_size=100
     distance_matrix, shortest_paths = calc_distance_matrix(graph)
 
-    problem = ONOSControllerPlacement(num_nodes, distance_matrix, shortest_paths)
-    algorithm = NSGA2(pop_size=100,
+    avail_cores = len(os.sched_getaffinity(0))
+    optimal_cores = int(pop_size / 10)   # In this program, 10 evaluations per core is good number
+    pool = multiprocessing.Pool(min(avail_cores, optimal_cores))
+    runner = StarmapParallelization(pool.starmap)
+
+    problem = ONOSControllerPlacement(num_nodes, distance_matrix, shortest_paths, elementwise_runner=runner)
+    algorithm = NSGA2(pop_size=pop_size,
                       sampling=BinaryRandomSampling(),
                       crossover=TwoPointCrossover(),
                       mutation=BitflipMutation(),
@@ -181,7 +164,7 @@ def optimize():
     return res
 
 def main():
-    res = optimize()
+    res = optimize(topology_graph.graph)
     F = res.F
     print(F[np.argsort(F[:, 0])])
 
