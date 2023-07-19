@@ -162,7 +162,6 @@ def optimize(graph):
     start = time.time()
     res = minimize(problem,
                algorithm,
-               ('n_gen', 100),
                save_history=True,
                verbose=True)
     end = time.time()
