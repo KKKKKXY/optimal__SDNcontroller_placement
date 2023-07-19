@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-import os
 import numpy as np
 import networkx as nx
 import math
 import time
+import pickle
+import argparse
 import multiprocessing
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
@@ -167,13 +168,27 @@ def optimize(graph):
     end = time.time()
     dt = end - start
     print(f'Elapsed time: {dt}')
-    
+
     return res
 
+def parse_arg():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--prefix', help='Prefix for the result file')
+    return parser.parse_args()
+
 def main():
+    args = parse_arg()
+
     res = optimize(topology_graph.graph)
     F = res.F
     print(F[np.argsort(F[:, 0])])
+
+    outputfile = 'res.pkl'
+    if(args.prefix):
+        outputfile = args.prefix + outputfile
+    with open(outputfile, 'wb') as f:
+        pickle.dump(res,f)
+
 
 if __name__ == "__main__":
     main()
