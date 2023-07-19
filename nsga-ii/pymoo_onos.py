@@ -3,6 +3,7 @@ import os
 import numpy as np
 import networkx as nx
 import math
+import time
 import multiprocessing
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
@@ -156,11 +157,16 @@ def optimize(graph):
                       mutation=BitflipMutation(),
                       seed=1,
                       eliminate_duplicates=True)
+    
+    start = time.time()
     res = minimize(problem,
                algorithm,
                ('n_gen', 100),
                save_history=True,
                verbose=True)
+    end = time.time()
+    dt = end - start
+    print(f'Elapsed time: {dt}')
     
     return res
 
