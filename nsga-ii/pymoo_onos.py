@@ -144,8 +144,7 @@ def optimize(graph):
     distance_matrix, shortest_paths = calc_distance_matrix(graph)
 
     avail_cores = len(os.sched_getaffinity(0))
-    optimal_cores = int(pop_size / 10)   # In this program, 10 evaluations per core is good number
-    pool = multiprocessing.Pool(min(avail_cores, optimal_cores))
+    pool = multiprocessing.Pool(avail_cores)
     runner = StarmapParallelization(pool.starmap)
 
     problem = ONOSControllerPlacement(num_nodes, distance_matrix, shortest_paths, elementwise_runner=runner)
