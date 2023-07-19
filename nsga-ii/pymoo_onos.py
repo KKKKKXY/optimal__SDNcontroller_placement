@@ -143,11 +143,13 @@ def optimize(graph):
     pop_size=100
     distance_matrix, shortest_paths = calc_distance_matrix(graph)
 
-    avail_cores = len(os.sched_getaffinity(0))
-    pool = multiprocessing.Pool(avail_cores)
-    runner = StarmapParallelization(pool.starmap)
+    # Use the following codes for parallelization, but it does not always improve the performance.
+    # avail_cores = len(os.sched_getaffinity(0))
+    # pool = multiprocessing.Pool(avail_cores)
+    # runner = StarmapParallelization(pool.starmap)
+    # problem = ONOSControllerPlacement(num_nodes, distance_matrix, shortest_paths, elementwise_runner=runner)
 
-    problem = ONOSControllerPlacement(num_nodes, distance_matrix, shortest_paths, elementwise_runner=runner)
+    problem = ONOSControllerPlacement(num_nodes, distance_matrix, shortest_paths)
     algorithm = NSGA2(pop_size=pop_size,
                       sampling=BinaryRandomSampling(),
                       crossover=TwoPointCrossover(),
