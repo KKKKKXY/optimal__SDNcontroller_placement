@@ -1,13 +1,16 @@
 #!/usr/bin/env python
+import os
 import numpy as np
 import networkx as nx
 import math
+import multiprocessing
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.operators.crossover.pntx import TwoPointCrossover
 from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.operators.sampling.rnd import BinaryRandomSampling
 from pymoo.optimize import minimize
+from pymoo.core.problem import StarmapParallelization
 
 import topology_graph
 
@@ -137,10 +140,16 @@ def calc_distance_matrix(graph):
 
 def optimize(graph):
     num_nodes = len(graph)
+    pop_size=100
     distance_matrix, shortest_paths = calc_distance_matrix(graph)
 
-    problem = ONOSControllerPlacement(num_nodes, distance_matrix, shortest_paths)
-    algorithm = NSGA2(pop_size=100,
+    avail_cores = len(os.sched_getaffinity(0))
+    optimal_cores = int(pop_size / 10)   # In this program, 10 evaluations per core is good number
+    pool = multiprocessing.Pool(min(avail_cores, optimal_cores))
+    runner = StarmapParallelization(pool.starmap)
+
+    problem = ONOSControllerPlacement(num_nodes, distance_matrix, shortest_paths, elementwise_runner=runner)
+    algorithm = NSGA2(pop_size=pop_size,
                       sampling=BinaryRandomSampling(),
                       crossover=TwoPointCrossover(),
                       mutation=BitflipMutation(),
